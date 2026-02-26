@@ -1,0 +1,23 @@
+{% if products %}
+<div class="flex flex-col gap-2">
+    {% for product in products  %}
+        <div class="flex justify-between">
+            <span class="font-bold">{{product.product_name}}</span>
+            <div class="indicator">
+                <span class="indicator-item badge badge-primary">{{product.product_count}}</span>
+                <button class="btn btn-sm" hx-get="{% url "update_product" product.pk class_name %}" 
+                hx-target="#{{class_name}}-form"
+                hx-swap="outerHTML"
+                >Update</button>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% else %}
+{% if is_empty %}
+<span class="text-info text-xs"></span>
+{% else %}
+<span class="text-info text-xs">New Product</span>
+{% endif %}
+</span>
+{% endif %}

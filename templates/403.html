@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 text-center">
+        <div>
+            <h2 class="mt-6 text-3xl font-extrabold">
+                Access Restricted
+            </h2>
+            <p class="mt-2 text-sm">
+                You do not have permission to view this page.
+            </p>
+        </div>
+        <div class="mt-8 space-x-4">
+            <a href="{% url 'dashboard' %}" class="btn btn-sm btn-primary font-medium">
+                Return to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

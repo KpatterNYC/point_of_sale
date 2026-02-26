@@ -1,0 +1,55 @@
+{% load django_htmx %}
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>
+        {% block title %}{% endblock title %}
+    </title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% tailwind_css %}
+    {% htmx_script %}
+    <script src="{% static " javascript/jquery_prod.js" %}"></script>
+</head>
+
+<body hx-headers='{"x-csrftoken": "{{ csrf_token }}"}' class="min-h-screen flex flex-col">
+    <nav class="navbar bg-base-200">
+        <div class="navbar-start">
+            <div class="w-fit">
+                {% if request.user.is_authenticated %}
+                <a href="{% url "dashboard" %}">
+                    <span class="text-xl">Katrina's Electronics</span>
+                </a>
+                {% else %}
+                <a href="{% url "homepage" %}">
+                    <span class="text-xl">Katrina's Electronics</span>
+                </a>
+                {% endif %}
+
+            </div>
+        </div>
+        <div class="navbar-center">
+            {% block navbar_center %}{% endblock navbar_center %}
+        </div>
+        <div class="navbar-end">
+            <ul class="menu menu-horizontal gap-3">
+                {% block navbar_end %}{% endblock navbar_end %}
+            </ul>
+        </div>
+    </nav>
+    <div class="flex-1 flex flex-col p-2 overflow-auto">
+        {% block content %}{% endblock content %}
+    </div>
+
+    {% if messages %}
+    {% include "includes/messages.html" with messages=messages %}
+    {% endif %}
+
+    {% block js_links %}{% endblock js_links %}
+</body>
+
+</html>

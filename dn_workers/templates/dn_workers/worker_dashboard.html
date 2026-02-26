@@ -1,0 +1,182 @@
+<div class="p-1 flex flex-col gap-2">
+
+    <div class="my-2 card border p-2" id="worker-functions">
+        <div class="card-body">
+            <h2 class="font-bold">Workers: {% if workers %} <span class="badge badge-md badge-info">{{workers.count}}</span> {% endif %}</h2>
+            <div class="divider"></div>
+            {% if workers %}
+                <ul class="menu menu-vertical w-full">
+                    {% for worker in  workers %}
+                        {% if worker.user.worker_profile %}
+                            <li class="bg-base-200">
+                                <div class="flex flex-col items-start justify-center md:flex-row md:justify-between md:items-center">
+                                    <div class="w-fit flex flex-col gap-1">
+                                        <h2 class="font-bold text-xl">{{worker}}</h2>
+                                        <span class="font-bold text-xs uppercase">{{worker.role}}</span>
+                                        {% if worker.is_active %}
+                                            <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                            <span class="badge badge-warning">In-Active</span>
+                                        {% endif %}
+                                        
+                                    </div>
+                                    <div class="flex-1 flex justify-between md:justify-end flex-wrap items-center gap-2">
+                                        {% if worker.is_active %}
+                                            <button class="btn btn-sm border border-warning"type="button" 
+                                            hx-post="{% url "activate_worker_profile" %}" 
+                                            hx-indicator="#deactivate-{{worker}}-indicator"
+                                            hx-vals='{"worker-id":"{{worker.pk}}"}'
+                                            >Deactivate Account 
+                                                <span class="loading loading-spinner text-primary htmx-indicator" id="deactivate-{{worker.pk}}-indicator"></span>
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-sm border border-primary" 
+                                                hx-post="{% url "activate_worker_profile" %}" 
+                                                hx-indicator="#activate-{{worker.pk}}-indicator"
+                                                hx-vals='{"worker-id":"{{worker.pk}}"}'
+                                                >Activate Account 
+                                                <span class="loading loading-spinner text-primary htmx-indicator" id="activate-{{worker.pk}}-indicator"></span>
+                                            </button>
+                                        {% endif %}
+                                        <button class="btn btn-sm  border border-primary" type="button" onclick="worker_modal_{{worker.pk}}.showModal()">Change Role</button>
+                                        <dialog class="modal" id="worker_modal_{{worker.pk}}">
+                                            <div class="modal-box">
+                                                <form method="dialog">
+                                                    <button class="btn btn-sm btn-circle btn-primary font-bold absolute right-1 top-1">x</button>
+                                                </form>
+                                                <p>Current Role: <span class="ms-3 badge badge-primary text-xs font-bold uppercase">{{worker.role}}</span></p>
+                                                <div class="divider"></div>
+                                                <form method="POST" dt-type="role-form" hx-post="{% url "change_worker_role" %}" hx-indicator="#role-{{worker.pk}}-indicator">
+                                                    {% csrf_token %}
+                                                    <fieldset class="fieldset">
+                                                        <legend class="fieldset-legend">Select Role</legend>
+                                                        <select class="select select-sm w-full" name="worker-role" required>
+                                                            {% for key,val in roles.items %}
+                                                                {% if worker.role != key %}
+                                                                    <option value="{{key}}">{{val}}</option>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </select>
+                                                        <input class="hidden" name="worker-id" value="{{worker.pk}}">
+                                                    </fieldset>
+                                                    <div role="alert" class="alert alert-soft border border-primary hidden mt-10">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-6 w-6 shrink-0 stroke-current">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        <span></span>
+                                                    </div>
+                                                    <div class="flex justify-between my-2">
+                                                        <span class="loading loading-spinner text-primary htmx-indicator" id="role-{{worker.pk}}-indicator"></span>
+                                                        <button class="btn btn-sm border border-primary" type="submit">Change Role</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </dialog>
+                                        <button class="btn btn-sm border border-error" type="button" onclick="worker_layoff_{{worker.pk}}.showModal()">Layoff</button>
+                                        <dialog class="modal" id="worker_layoff_{{worker.pk}}">
+                                            <div class="modal-box">
+                                                <form method="dialog">
+                                                    <button class="btn btn-sm btn-circle btn-error font-bold absolute right-1 top-1">x</button>
+                                                </form>
+                                                <h2 class="uppercase font-bold text-xl">Layoff Worker?</h2>
+                                                <div class="divider"></div>
+                                                <div role="alert" class="alert alert-error">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <span>This Action is Irreversable.</span>
+                                                </div>
+                                                <div class="my-2 flex justify-between">
+                                                    <span class="loading loading-spinner text-success htmx-indicator" id="layoff-{{worker.pk}}-indicator"></span>
+                                                    <button class="btn btn-sm border border-error" type="button" 
+                                                    hx-post="{% url "layoff_worker" %}" 
+                                                    hx-vals='{"worker-id":"{{worker.pk}}"}'
+                                                    hx-indicator="#layoff-{{worker.pk}}-indicator"
+                                                    >Yes</button>
+                                                </div>
+                                            </div>
+                                        </dialog>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            {% else %}
+            <div role="alert" class="alert alert-info">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-6 w-6 shrink-0 stroke-current">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>You currently have no workers.</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{{locations|json_script:"locations"}}
+<script>
+    (function(){
+        const locations =JSON.parse($("#locations").text());
+        const worker_allocate_modals=$("dialog.modal.worker-placement-modals");
+        $.each(worker_allocate_modals,function(_,elem){
+            const modal=$(elem);
+            const location_select=modal.find("select[name='location']");
+            const shop_select=modal.find("select[name='shop']");
+
+            updateShops(location_select.val(),shop_select);
+
+            location_select.on("change",function(){
+                shop_select.html("");
+                updateShops(location_select.val(),shop_select);
+            })
+        });
+        function updateShops(location_id,shop_select){
+            const shops = locations[location_id].shops
+            Object.entries(shops).forEach(([id, name])=> {
+                const option=$("<option></option>").val(id).text(name);
+                shop_select.append(option);
+            });
+        }
+        const worker_functions=$("#worker-functions");
+        const forms=worker_functions.find("form[dt-type='role-form']");
+        const roles = {
+            seller: "Allows the worker to access the sales dashboard and process customer sales.",
+            stocker: "Allows the worker to manage inventory by stocking and organizing products.",
+            manager: "Allows the worker to manage inventory and process sales with full operational access."
+        };
+        $(document).on("click", "#copy-btn", function(){
+            const btn = $(this);
+            const invite_input = $("input[name='invite-url']");
+            
+            const original_text = btn.text();
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(invite_input.val());
+                
+                btn.text("Copied!");
+                setTimeout(() => {
+                    btn.text(original_text);
+                }, 2000);
+            }
+        });
+
+        $.each(forms,function(_,elem){
+            const select=$(elem).find("select[name='worker-role']");
+            let default_role=select.val();
+            const role_alert=$(elem).find("div[role='alert']");
+            const span_alert=role_alert.find("span");
+            select.on("change",function(){
+                default_role=$(this).val();
+                showRoleDescription(default_role,span_alert);
+            });
+            showRoleDescription(default_role,span_alert);
+
+
+        });
+
+        function showRoleDescription(role,alert){
+            alert.html("");
+            alert.text(roles[role]);
+            alert.closest("div").removeClass("hidden");
+        }
+    })();
+</script>

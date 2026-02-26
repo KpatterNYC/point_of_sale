@@ -1,0 +1,53 @@
+{% load humanize %}
+{% if products %}
+{% for key,values in products.items %}
+<div class="card shadow-xl">
+    <div class="card-body">
+        <h2 class="font-bold underline underline-offset-1">{{key|title}} Brand</h2>
+        <div class="my-2">
+            <div class="flex flex-col gap-2">
+                {% for product in values %}
+                <div class="my-2 flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+                    <span class="font-bold text-xl">{{product.product_name}}</span>
+                    <div class="flex justify-between flex-wrap gap-2 m-0 p-0">
+                        <button class="btn btn-sm bnt-info border border-info" type="button"
+                            onclick="modal_{{product.productID}}.showModal()">Product Details</button>
+                        <button class="btn btn-sm border border-accent" type="button">
+                            Current Stock
+                            <span class="indicator-item badge badge-primary">{{product.product_count}}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <dialog class="modal" id="modal_{{product.productID}}">
+                    <div class="modal-box">
+                        <form method="dialog">
+                            <button class="btn btn-sm btn-circle btn-error absolute right-1 top-1">x</button>
+                        </form>
+                        <h2 class="text-xl font-bold uppercase">Product Details</h2>
+                        <div class="divider"></div>
+                        <ul class="menu menu-vertical w-full">
+                            {% for key,val in product.display_fields.items %}
+                            <li class="flex flex-row justify-between">
+                                <span>{{key}}</span>
+                                <span>
+                                    {% if key == "Product buy price" or key == "Product sell price" %}
+                                    $ {{val|intcomma}}
+                                    {% else %}
+                                    {{val}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </dialog>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<p class="text-warning">Product has not been added to inventory.</p>
+{% endif %}

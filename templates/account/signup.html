@@ -1,0 +1,81 @@
+{% extends "account/base_entrance.html" %}
+{% load allauth i18n %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}
+    {% trans "Signup" %}
+{% endblock title %}
+{% block content %}
+    {% comment %} {% element h1 %}
+        {% trans "Sign Up" %}
+    {% endelement %}
+    {% setvar link %}
+        <a href="{{ login_url }}">
+        {% endsetvar %}
+        {% setvar end_link %}
+        </a>
+    {% endsetvar %}
+    {% element p %}
+        {% blocktranslate %}Already have an account? Then please {{ link }}sign in{{ end_link }}.{% endblocktranslate %}
+    {% endelement %}
+    {% if not SOCIALACCOUNT_ONLY %}
+        {% url 'account_signup' as action_url %}
+        {% element form form=form method="post" action=action_url tags="entrance,signup" %}
+            {% slot body %}
+                {% csrf_token %}
+                {% element fields form=form unlabeled=True %}
+                {% endelement %}
+                {{ redirect_field }}
+            {% endslot %}
+            {% slot actions %}
+                {% element button tags="prominent,signup" type="submit" %}
+                    {% trans "Sign Up" %}
+                {% endelement %}
+            {% endslot %}
+        {% endelement %}
+    {% endif %}
+    {% if PASSKEY_SIGNUP_ENABLED %}
+        {% element hr %}
+        {% endelement %}
+        {% element button href=signup_by_passkey_url tags="prominent,signup,outline,primary" %}
+            {% trans "Sign up using a passkey" %}
+        {% endelement %}
+    {% endif %}
+    {% if SOCIALACCOUNT_ENABLED %}
+        {% include "socialaccount/snippets/login.html" with page_layout="entrance" %}
+    {% endif %} {% endcomment %}
+<div class="flex-1 flex justify-between gap-2">
+    <div class="hidden md:flex flex-2/4 bg-cover bg-no-repeat" style="background-image: url('{% static 'images/login_signup.jpg' %}')"></div>
+    <div class="flex-1 md:flex-2/4 flex flex-col items-center justify-center p-4">
+        <form method="POST" class="w-full" action="{% url "account_signup" %}">
+            {% csrf_token %}
+            {% for field in form %}
+                <fieldset class="fieldset">
+                    <legend class="fielset-legend">{{field.label}}</legend>
+                    {% if field.label == "Remember Me" %}
+                     {% render_field field type="checkbox" class="checkbox" %}
+                    {% else %}
+                        {% render_field field class="input input-sm w-full" %}
+                    {% endif %}
+                    <label class="fielset-label text-info">{{field.help_text}}</label>
+                    <label class="fielset-label text-error">{{field.errors}}</label>
+                </fieldset>
+            {% endfor %}
+            {% if "inviting_tenant" in request.session.keys %}
+                <input class="input input-sm w-full hidden" value="{{request.session.inviting_tenant}}" name="inviting-tenant" readonly>
+            {% endif %}
+            <div class="my-2 flex justify-end">
+                <button class="btn btn-sm btn-primary" type="submit">Sign Up </button>
+            </div>
+        </form>
+        <div class="divider"></div>
+        <div class="my-2">
+            <ul class="menu menu-vertical items-center w-full">
+                <li>
+                    <a href="{% url "account_login" %}" class="link no-underline">Have an account? Login here.</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock content %}

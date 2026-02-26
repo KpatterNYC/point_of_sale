@@ -1,0 +1,48 @@
+<script>
+    (function () {
+        const billTypes = $("#billTypes");
+        const buttons = billTypes.find("button");
+        const pricing_spans = $("span[dt-type='pricing']");
+        const plan_types = $("input[name='billing-type']");
+        const default_billing = $("#default-billing");
+        let active;
+
+        $.each(buttons, function (_, element) {
+            active = $(buttons[1]);
+            const elem = $(element);
+            elem.click(function (e) {
+                e.preventDefault();
+                let days = Number.parseInt(elem.attr("dt-value"));
+                let bill_type = elem.attr("dt-type");
+                if (elem.is(active)) {
+                    return;
+                }
+                elem
+                    .addClass("btn-md btn-primary motion-preset-expand")
+                    .removeClass("btn-sm");
+                active
+                    .removeClass("btn-md btn-primary motion-preset-expand")
+                    .addClass("btn-sm");
+
+                active = elem;
+
+                updatePricing(days, pricing_spans, bill_type);
+
+            });
+        });
+
+
+        function updatePricing(months, pricing_spans, billing_type) {
+            $.each(pricing_spans, function (_, elem) {
+                let span = $(elem);
+                let month_val = Number.parseInt(span.attr("data-value"));
+                span.text(`$ ${(month_val * months).toLocaleString()}`)
+            });
+            $.each(plan_types, function (_, elem) {
+                $(elem).val(billing_type);
+            });
+        }
+
+        updatePricing(3, pricing_spans, default_billing.attr("dt-type"));
+    })();
+</script>

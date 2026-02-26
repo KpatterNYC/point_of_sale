@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{request.tenant.name|title}} Dashboard{% endblock title %}
+{% block navbar_center %}
+<h2 class="text-xs font-bold md:font-normal md:text-xl uppercase text-pretty"> {{request.tenant.name}}</h2>
+{% endblock navbar_center %}
+{% block navbar_end %}
+<li>
+    <a href="{% url "account_logout" %}" class="btn btn-sm btn-error">Logout</a>
+</li>
+{% endblock navbar_end %}
+{% block content %}
+<div class="flex-1 flex justify-between relative">
+    <div class="my-2 p-1 md:hidden">
+        <button class="btn btn-sm" id="menu-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>
+            </svg>
+        </button>
+    </div>
+    <div class="hidden z-10 absolute md:static md:z-0 md:w-fit md:flex bg-base-300" id="menu-div">
+        <div class="flex justify-end md:hidden p-1">
+            <button class="btn btn-sm btn-circle btn-error right-0 font-bold" id="close-menu-btn">X</button>
+        </div>
+        <ul class="menu menu-vertical gap-1" id="dash-ul">
+            {% for key,path in paths.items %}
+            <li class="flex flex-row justify-between">
+                {% if path.link == request.session.active_url or not request.session.active_url and path.link == default_link %}
+                <button dt-active="true" id="btn-{{path.link_id}}" class="btn btn-primary btn-sm w-full justify-start"
+                    type="button" hx-target="#dashboard-content"
+                    hx-indicator="#{{path.link_id}}-indicator">{{key}}</button>
+                {% else %}
+                <button id="btn-{{path.link_id}}" class="btn btn-sm w-full flex justify-between" hx-get="{{path.link}}"
+                    hx-target="#dashboard-content" hx-indicator="#{{path.link_id}}-indicator">{{key}}
+                    <span class="loading loading-spinner loading-sm htmx-indicator"
+                        id="{{path.link_id}}-indicator"></span>
+                </button>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% if request.session.active_url %}
+    <div class="flex-1 bg-base-200 p-1" id="dashboard-content" hx-get="{{request.session.active_url}}" hx-trigger="load"
+        hx-target="this" hx-swap="innerHTML"></div>
+    {% else %}
+    <div class="flex-1 bg-base-200 p-1" id="dashboard-content" hx-get="{{ default_link }}" hx-trigger="load"
+        hx-target="this" hx-swap="innerHTML"></div>
+    {% endif %}
+</div>
+{{paths|json_script:"paths"}}
+{% endblock content %}
+
+{% block js_links %}
+<script src="{% static "dn_home/js/dashboard.js" %}"></script>
+{% endblock js_links %}

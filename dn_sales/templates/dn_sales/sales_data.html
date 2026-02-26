@@ -1,0 +1,113 @@
+{% load humanize %}
+<div class="flex-1 flex flex-col gap-2 p-2">
+    <div class="my-2">
+        <h2 class="font-bold text-xl uppercase">Recent Sales</h2>
+        <div class="divider"></div>
+        {% if sales_data %}
+        <table class="table table-sm lg:table-md w-full">
+            <thead>
+                <tr>
+                    <td class="font-bold">Count</td>
+                    {% for head in table_headers %}
+                        <td class="font-bold">{{head}}</td>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales_data %}
+                    <tr>
+                        <td class="text-2xl font-medium opacity-30 tabular-nums">
+                            {{forloop.counter}}
+                        </td>
+                        <td>
+                            <span class="font-bold text-md">
+                                {% if sale.admin_handler %}
+                                    {{sale.admin_handler.tnt_profile.tenant.name}}
+                                {% else %}
+                                    {{sale.worker_handler}}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            {{sale.sale_dt}}
+                        </td>
+                        <td>
+                            {% if request.user.worker_profile.is_owner or request.user.worker_profile.role == "manager" %}
+                            <button class="btn btn-sm border border-primary" type="button" onclick="payment_method_{{sale.apiIdentifier}}_modal.showModal()">Finance Data</button>
+                            <dialog class= "modal" id="payment_method_{{sale.apiIdentifier}}_modal">
+                                <div class="modal-box">
+                                    <form method="dialog">
+                                        <button class="btn btn-sm btn-circle btn-error absolute right-0 top-0">x</button>
+                                    </form>
+                                    <h2 class="font-bold text-xl">Payment Method: <span class="badge badge-info uppercase">{{sale.payment_method}}</span></h2>
+                    
+                                    <div class="divider"></div>
+                                    <div class="my-2">
+                                        <ul class="menu menu-vertical w-full">
+                                                <li>
+                                                    <div class="flex flex-row justify-between">
+                                                        <span>Amount</span>
+                                                        <span>$ {{sale.cash_amount|intcomma}}</span>
+                                                    </div>
+                                                </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </dialog>
+                            {% else %}
+                            -
+                            {% endif %}
+                           
+                        </td>
+                        <td>
+                            <button class="btn btn-sm border border-primary" type="button" onclick="sold_products_{{sale.apiIdentifier}}_modal.showModal()">Products Sold</button>
+                            <dialog class="modal" id="sold_products_{{sale.apiIdentifier}}_modal">
+                                <div class="modal-box">
+                                    <form method="dialog">
+                                        <button class="btn btn-sm btn-circle btn-error absolute right-1 top-1">x</button>
+                                    </form>
+                                    <h2 class="text-xl font-bold uppercase">Products Sold</h2>
+                                    <div class="divider"></div>
+                                    <ul class="menu menu-vertical w-full">
+                                        {% for product in sale.products_sold.all  %}
+                                
+                                            {% for k,v in product.product_details.items  %}
+                                                {% if k != "name" %}
+                                                <li class="flex flex-row justify-between">
+                                                    <span>{{k|title}}</span>
+                                                    <span>{{v}}</span>
+                                                </li>
+                                                {% endif %}
+                                                
+                                            {% endfor %}
+                                                
+                                            <div class="divider p-0 m-0"></div>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </dialog>
+                        </td>
+                        <td>
+                            <a href="{{sale.receipt.url}}" class="btn btn-sm border border-secondary">Receipt Link</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div role="alert" class="alert alert-info">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-6 w-6 shrink-0 stroke-current">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>
+                {% if is_owner %}
+                No sales have been made so far
+                {% else %}
+                You have not made any sales so far
+                {% endif %}
+                .
+            </span>
+        </div>
+        {% endif %}
+    </div>
+</div>

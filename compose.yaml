@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:15.15-trixie
+    restart: always
+    shm_size: 256mb
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      POSTGRES_PASSWORD: katrina_12345
+      POSTGRES_USER: katrinauser
+      POSTGRES_DB: katrinadb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:

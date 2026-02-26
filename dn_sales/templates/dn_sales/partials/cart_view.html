@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% load mathfilters %}
+
+
+{% block title %}Cart{% endblock title %}
+{% block content %}
+{% if products %}
+<div class="my-2">
+    <div class="flex flex-col gap-2" id="cart-products">
+
+    </div>
+    <span class="text-sm text-error" id="error-msg"></span>
+</div>
+<div class="my-2 flex justify-end p-2">
+    <button class="btn btn-sm btn-success" type="button" id="complete-sale">Complete Sale</button>
+    <dialog class="modal" id="complete_sale_dialog">
+        <div class="modal-box">
+            <button class='btn btn-sm btn-error btn-circle absolute right-0 top-1' type='button'
+                onclick="complete_sale_dialog.close()">x</button>
+            <div class="divider"></div>
+            <div class="my-2" id="modal-content">
+                <form method="POST" hx-indicator="#complete-sale-indicator" hx-post="{% url " complete_sale" %}"
+                    id="product-data-form">
+                    {% csrf_token %}
+                    <div class="card shadow-lg my-2">
+                        <div class="card-body">
+                            <h2 class="text-xl font-bold">Customer Details</h2>
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">Customer's Name</legend>
+                                <input class="input input-sm w-full" name="c-name" id="c-name" required>
+                            </fieldset>
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">Customer's Phone Number</legend>
+                                <input class="input input-sm w-full" name="c-phone" id="c-phone"
+                                    pattern="^0(7|1)[0-9]{8}$" required>
+                            </fieldset>
+                        </div>
+                    </div>
+                    <div class="card shadow-lg border my-2">
+                        <div class="card-body" id="payment-methods">
+                            <h2 class="text-xl font-bold">Payment Method</h2>
+                            {% for key,val in payment_methods.items %}
+                            <div class="flex justify-between gap-2">
+                                <span>{{val}}</span>
+                                {% if key == "mpesa" %}
+                                <input class="radio radio-sm" name="payment-method" value="{{key}}" id="{{key}}"
+                                    type="radio" checked="checked">
+                                {% else %}
+                                <input class="radio radio-sm" name="payment-method" value="{{key}}" type="radio"
+                                    id="{{key}}">
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="card shadow-lg my-2">
+                        <div class="card-body">
+                            <h2 class="text-xl font-bold">Amount</h2>
+                            <div id="amount-card"></div>
+                        </div>
+                    </div>
+                    <input class="hidden" name="products-data">
+                    <div class="flex justify-between">
+                        <span class="loading loading-spinner text-success htmx-indicator"
+                            id="complete-sale-indicator"></span>
+                        <button class="btn btn-sm btn-success" type="submit" id="complete-sale-btn">Complete
+                            Sale</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </dialog>
+</div>
+{{products|json_script:"products"}}
+{% else %}
+<div role="alert" class="alert alert-info">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="h-6 w-6"
+        viewBox="0 0 16 16">
+        <path
+            d="M7.354 5.646a.5.5 0 1 0-.708.708L7.793 7.5 6.646 8.646a.5.5 0 1 0 .708.708L8.5 8.207l1.146 1.147a.5.5 0 0 0 .708-.708L9.207 7.5l1.147-1.146a.5.5 0 0 0-.708-.708L8.5 6.793z" />
+        <path
+            d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zm3.915 10L3.102 4h10.796l-1.313 7zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+    </svg>
+    <span>You have no products in your cart.</span>
+</div>
+{% endif %}
+{% endblock content %}
+
+{% block js_links %}
+<script src="{% static " dn_sales/js/cart_view.js" %}"></script>
+{% endblock js_links %}

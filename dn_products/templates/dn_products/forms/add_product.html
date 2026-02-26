@@ -1,0 +1,176 @@
+{% load widget_tweaks %}
+<form method="POST" hx-post="{{view_url}}" hx-indicator="#add-{{class_name|lower}}-indicator" id="{{class_name}}-form" hx-target="this" hx-swap="outerHTML">
+    {% csrf_token %}
+    {% for field in form %}
+        {% if field.name == "product_name" %}
+            <fieldset class="fieldset motion-preset-slide-right">
+                    <legend class="fieldset-legend">{{field.label}}</legend>
+                    {% if field.value %}
+                    <input class="input input-sm w-full" type="text" name="product_name" id="product_name"
+                    value="{{field.value}}"
+                    hx-post="{% url "search_product" %}"
+                    hx-trigger="keyup delay:800ms changed" 
+                    hx-target="#search-results-{{class_name}}" 
+                    hx-swap="innerHTML" 
+                    hx-indicator="#search-{{class_name}}-name-indicator"
+                    >
+                    {% else %}
+                    <input class="input input-sm w-full" type="text" name="product_name" id="product_name"
+                    hx-post="{% url "search_product" %}"
+                    hx-trigger="keyup delay:800ms changed" 
+                    hx-target="#search-results-{{class_name}}" 
+                    hx-swap="innerHTML" 
+                    hx-indicator="#search-{{class_name}}-name-indicator"
+                    >
+                    {% endif %}
+                    <label class="fieldset-label text-info">{{field.help_text|safe}}</label>
+                    <label class="fieldset-label text-error">{{field.errors}}</label>
+            </fieldset>
+            <input class="hidden" name="class-name" value="{{class_name}}">
+            <span class="loading loading-dots text-info htmx-indicator" id="search-{{class_name}}-name-indicator"></span>
+            <div id="search-results-{{class_name}}" class="mb-2"></div>
+        {% else %}
+            <fieldset class="fieldset motion-preset-slide-right">
+                <legend class="fieldset-legend">{{field.label}}</legend>
+                {{field}}
+                <label class="fieldset-label text-info">{{field.help_text|safe}}</label>
+                <label class="fieldset-label text-error">{{field.errors}}</label>
+            </fieldset>
+        {% endif %}
+    {% endfor %}
+
+    <div class="my-2 flex justify-between">
+        <button class="btn btn-sm btn-info info hidden" type="button" id="prev-{{class_name}}-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-left" viewBox="0 0 16 16">
+            <path d="M10 12.796V3.204L4.519 8zm-.659.753-5.48-4.796a1 1 0 0 1 0-1.506l5.48-4.796A1 1 0 0 1 11 3.204v9.592a1 1 0 0 1-1.659.753"/>
+            </svg>
+            Previous
+        </button>
+        <button class="btn btn-sm btn-info" type="button" id="next-{{class_name}}-btn">
+            Next
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right" viewBox="0 0 16 16">
+            <path d="M6 12.796V3.204L11.481 8zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753"/>
+            </svg>
+        </button>
+    </div>
+    <div class="my-2 flex justify-between">
+        <span class="loading loading-spinner text-success htmx-indicator" id="add-{{class_name|lower}}-indicator"></span>
+        <button class="btn btn-sm btn-success" type="submit" id="add-{{class_name}}-btn">
+            {% if add %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+            </svg>
+            Add
+            {% else %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-arrow-up" viewBox="0 0 16 16">
+            <path d="M8 11a.5.5 0 0 0 .5-.5V6.707l1.146 1.147a.5.5 0 0 0 .708-.708l-2-2a.5.5 0 0 0-.708 0l-2 2a.5.5 0 1 0 .708.708L7.5 6.707V10.5a.5.5 0 0 0 .5.5"/>
+            <path d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1"/>
+            </svg>
+            Update 
+            {% endif %}
+            {{class_name}}
+        </button>
+    </div>
+</form>
+{{class_name|json_script:"class-name"}}
+<script>
+    (function(){
+        const class_name=JSON.parse($('#class-name').text());
+        const form=$(`#${class_name}-form`);
+        const prev_btn=$(`#prev-${class_name}-btn`);
+        const next_btn=$(`#next-${class_name}-btn`);
+        const submit_btn=$(`#add-${class_name}-btn`);
+        function splitForm(form, nextBtn, backBtn, submit,lmt) {
+  // Also get all prev-cont elements
+            const fieldSets=form.find("fieldset")
+            // Hide all fieldsets and prev-cont elements initially
+            fieldSets.addClass("hidden");
+            submit.addClass("hidden");
+
+            let limitVal = lmt;
+            let quotient = Math.floor(fieldSets.length / limitVal);
+            let reminder = fieldSets.length % limitVal;
+            let loop_list = [];
+            for (let index = 1; index <= quotient; index++) {
+                loop_list.push(index * limitVal);
+            }
+            if (reminder > 0) {
+                reminder += loop_list.at(-1) || 0;
+                loop_list.push(reminder);
+            }
+
+            // Handle case where there are fewer fields than limitVal
+            if (loop_list.length === 0) {
+                loop_list.push(fieldSets.length);
+            }
+
+            let start = loop_list[0];
+            let limit = 0;
+            displayElements(limit, start, fieldSets);
+
+            // Only show navigation if there are multiple pages
+            if (loop_list.length > 1) {
+                nextBtn.removeClass("hidden");
+                nextBtn.off("click").on("click", function () {
+                    limit = start;
+                    let nextIndex = loop_list.indexOf(start) + 1;
+                    if (nextIndex < loop_list.length) {
+                    start = loop_list[nextIndex];
+                    displayElements(limit, start, fieldSets);
+                    hideBackBtn(start, loop_list[0], backBtn);
+                    showHideAddBtn(start, loop_list.at(-1), nextBtn, submit);
+                    }
+                });
+                backBtn.off("click").on("click", function () {
+                    let prevIndex = loop_list.indexOf(start) - 1;
+                    if (prevIndex >= 0) {
+                    start = loop_list[prevIndex];
+                    limit = prevIndex > 0 ? loop_list[prevIndex - 1] : 0;
+                    displayElements(limit, start, fieldSets);
+                    hideBackBtn(start, loop_list[0], backBtn);
+                    showHideAddBtn(start, loop_list.at(-1), nextBtn, submit);
+                    }
+                });
+            }else {
+                nextBtn.addClass("hidden");
+                submit.removeClass("hidden");
+            }
+            }
+
+            function displayElements(limit, start, fieldsets) {
+            // Handle fieldsets
+            $.each(fieldsets, function (index, elem) {
+                if (index >= limit && index < start) {
+                $(elem).removeClass("hidden");
+                } else {
+                if (!$(elem).hasClass("hidden")) {
+                    $(elem).addClass("hidden");
+                }
+                
+                }
+            });
+        }
+        
+
+            // The rest of your functions remain the same
+        function hideBackBtn(cStart, oStart, backBtn) {
+            if (cStart !== oStart) {
+                backBtn.removeClass("hidden");
+            } else {
+                backBtn.addClass("hidden");
+            }
+        }
+
+        function showHideAddBtn(start, lastPage, nextBtn, addBtn) {
+            if (start === lastPage) {
+                nextBtn.addClass("hidden");
+                addBtn.removeClass("hidden");
+            } else {
+                addBtn.addClass("hidden");
+                nextBtn.removeClass("hidden");
+            }
+        }
+
+        splitForm(form,next_btn,prev_btn,submit_btn,5)
+    })();
+</script>

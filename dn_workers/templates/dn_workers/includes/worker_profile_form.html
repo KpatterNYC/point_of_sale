@@ -1,0 +1,15 @@
+<form method="POST" hx-post="{% url "create_worker_profile" %}" hx-target="this" hx-swap="outerHTML" hx-indicator="#create-worker-profile-indicator">
+    {% csrf_token %}
+    {% for field in form %}
+        <fieldset class="fieldset">
+            <legend class="fielset-legend">{{field.label}}</legend>
+            {{field}}
+            <label class="fielset-label text-error">{{field.errors}}</label>
+        </fieldset>
+    {% endfor %}
+    <div class="divider"></div>
+    <div class="flex justify-between">
+        <span class="loading loading-sm text-success htmx-indicator" id="create-workker-profile-indicator"></span>
+        <button class="btn btn-sm btn-success" type="submit">Create Profile</button>
+    </div>
+</form>

@@ -1,0 +1,70 @@
+{% load humanize %}
+<div class="flex flex-col rounded border p-2">
+    <h2 class="font-bold text-xl uppercase">General Sales Breakdown</h2>
+    <div class="divider"></div>
+    <div class="grid grid-cols-2 shadow-lg gap-2">
+        {% for key,val in sales_breakdown.items %}
+        <div class="stat flex flex-col justify-center border">
+            <div class="stat-title text-xl font-bold">{{key}}</div>
+            <div class="stat-value">$ {{val.figure|intcomma}}</div>
+            {% if "count" in val.keys %}
+            <div class="stat-desc">Products sold: <span class="badge badge-info"> {{val.count|intcomma}}</span></div>
+            {% endif %}
+            {% if "since" in val.keys %}
+            <div class="stat-desc mt-3">
+                <span class="font-bold">{{val.since}}</span>
+                <div class="divider">To</div>
+                <span class="font-bold">{{val.until}}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<div class="my-2 p-2">
+    <h2 class="font-bold text-xl uppercase">Cash Tracker</h2>
+    <div class="divider"></div>
+    <div class="stats shadow border">
+        <div class="stat">
+            <div class="stat-title text-xl">Total Cash</div>
+            <div class="stat-value">$ {{cash_sum|intcomma}}</div>
+            <div class="stat-desc">{{cash_date}}</div>
+        </div>
+    </div>
+    <div class="my-2">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="flex justify-between gap-2 items-end">
+                <fieldset class="fieldset p-0 m-0 w-full">
+                    <legend class="fieldset-legend">Search By</legend>
+                    <select class="select select-sm w-full">
+                        <option value="date" selected>Date</option>
+                        <option value="date">Shop</option>
+                    </select>
+                </fieldset>
+                <fieldset class="fieldset p-0 m-0 w-full">
+                    <legend class="fieldset-legend">Search Value</legend>
+                    <input class="input input-sm w-full" name="date" type="date" required>
+                </fieldset>
+                <button class="btn btn-sm btn-success" type="submit">
+                    Search
+                    <span class="loading loading-spinner text-success"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="my-2" id="cash-tracker-content">
+        {% if cash_tracker %}
+        <ul class="menu menu-vertical w-full">
+            {% for cash in cash_tracker %}
+            <li>
+                <div class="flex justify-between">
+                    <span>{{forloop.counter}}. {{cash.shop_name}}</span>
+                    <span class="badge badge-info">$ {{cash.total_cash|intcomma}}</span>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</div>

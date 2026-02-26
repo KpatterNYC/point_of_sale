@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}
+Print Receipt
+{% endblock title %}
+{% block content %}
+<div class="flex-1 flex items-center justify-center p-2">
+    {% if receipt_url %}
+    <div class="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 rounded border flex flex-col items-center gap-2 p-1">
+        <h2>Print Receipt</h2>
+        <div class="divider"></div>
+        <div>
+            <a href="{{ receipt_url }}" 
+            class="btn btn-lg btn-primary w-100 mb-3" 
+            target="_blank">
+                <i class="fas fa-file-pdf"></i> View & Print PDF
+            </a>
+        </div>
+        <div>
+            <a href="intent:{{ receipt_url }}#Intent;scheme=https;package=ru.a402d.rawbtprinter;end;" 
+            class="btn btn-lg btn-dark w-100">
+                <i class="fab fa-bluetooth-b"></i> Print via Bluetooth (RawBT)
+            </a>
+        </div>
+        <div class="mt-4">
+            <a href="{% url 'tenant_dashboard' %}" class="btn btn-outline-secondary">Done</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 rounded border flex flex-col items-center gap-2 p-1">
+        <h3>Sale Complete!</h3>
+        <p class="text-muted">Receipt #{{ request.session.receipt_id }}</p>
+        <div>
+            <a href="{{ request.session.receipt_url }}" 
+            class="btn btn-lg btn-primary w-100 mb-3" 
+            target="_blank">
+                <i class="fas fa-file-pdf"></i> View & Print PDF
+            </a>
+        </div>
+        <div>
+            <a href="intent:{{ request.session.receipt_url }}#Intent;scheme=https;package=ru.a402d.rawbtprinter;end;" 
+            class="btn btn-lg btn-dark w-100">
+                <i class="fab fa-bluetooth-b"></i> Print via Bluetooth (RawBT)
+            </a>
+        </div>
+        <div class="mt-4">
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Done</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

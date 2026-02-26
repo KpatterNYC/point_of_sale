@@ -1,0 +1,144 @@
+{% load prod_filters %}
+
+
+<div class="flex-1 flex flex-col overflow-y-auto">
+    <div class="flex flex-row justify-center flex-wrap gap-y-2 gap-x-1" id="btn-details-div">
+        {% for key,val in product_categories.items  %}
+          
+            <button class="btn btn-sm border-primary shadow-xl" 
+            type="button"
+            popovertarget="{{key}}target"
+            style="anchor-name:--{{key}}-anchor"
+
+            >{{key}}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down" viewBox="0 0 16 16">
+            <path d="M3.204 5h9.592L8 10.481zm-.753.659 4.796 5.48a1 1 0 0 0 1.506 0l4.796-5.48c.566-.647.106-1.659-.753-1.659H3.204a1 1 0 0 0-.753 1.659"/>
+            </svg>
+        </button>
+        <ul class="dropdown menu w-fit rounded-box bg-base-100 shadow-sm" popover id="{{key}}target"  
+        style="position-anchor:--{{key}}-anchor">
+            {% for k,v in val.items %}
+                <li>
+                    <div class="flex justify-between">
+                        <a
+                        hx-get="{% url "product_details" k %}" hx-target="#product-inventory" hx-indicator="#{{k}}-indicator" hx-swap="innerHTML"
+                        >{{v}}</a>
+                        <span class="loading loading-spinner htmx-indicator" id="{{k}}-indicator"></span>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+        {% endfor %}
+    </div>
+    <div class="divider"></div>
+    <div class="p-1" id="product-inventory" hx-get="{% url "product_details" "SmartPhone" %}" hx-trigger="load" hx-target="this" hx-swap="innerHTML" hx-indicator="#SmartPhone-indicator"></div>
+</div>
+<div class="toast toast-end toast-bottom mb-10 me-5">
+    <button class="btn btn-xl btn-circle btn-primary" popovertarget="popover-1" style="anchor-name:--anchor-1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="font-bold" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"/>
+        </svg>
+    </button>
+    <ul class="dropdown dropdown-left dropdown-top menu w-fit rounded-box bg-base-100 shadow-sm" popover id="popover-1" style="position-anchor:--anchor-1">
+        {% for key,val in product_categories.items %}
+            <li>
+                    {% if key == "Phones" %}
+                    <details open id="active-details">
+                        <summary>{{key}}</summary>
+                        <ul class="menu menu-vertical gap-1 w-full">
+                            {% for k,v in val.items  %}
+                                <li>
+                                    <a class=" bg-base-200 hover:motion-preset-fade" hx-get="{% url "add_product" k %}" hx-target="#dialog-content" hx-indicator="#form-dialog-indicator">{{v}}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </details>
+                    {% else %}
+                    <details close>
+                        <summary>{{key}}</summary>
+                        <ul class="menu menu-vertical gap-1 w-full">
+                            {% for k,v in val.items  %}
+                                <li>
+                                    <a class=" bg-base-200 hover:motion-preset-fade" hx-get="{% url "add_product" k %}" hx-target="#dialog-content" hx-indicator="#form-dialog-indicator">{{v}}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </details>
+                    {% endif %}
+            </li>
+        {% endfor %}
+
+    </ul>
+</div>
+<dialog class="modal motion-preset-expand" id="form_dialog">
+    <div class="modal-box">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-error absolute right-2 top-1 font-bold">X</button>
+        </form>
+        <div class="divider"></div>
+        <span class="loading loading-spinner text-success htmx-indicator" id="form-dialog-indicator"></span>
+        <div class="my-2" id="dialog-content">
+        </div>
+    </div>
+</dialog>
+<script>
+(function () {
+    const popover = $('#popover-1');
+    const popover_details=popover.find("details");
+    const form_dialog=$("#form_dialog");
+    const btn_details_div=$("#btn-details-div");
+    const btn_details=btn_details_div.find("button");
+    const prod_inventory=$("#product-inventory");
+    let active_btn=btn_details.first();
+    let active_index=0
+    let active_details=$("#active-details");
+
+    btn_details_div.on("click","button",function(){
+        const btn=$(this);
+        const index=btn.index();
+        if (!active_btn.is(btn)){
+            prod_inventory.on("htmx:afterSwap",function(){
+                if (index>active_index){
+                    btn.addClass("btn-primary motion-preset-slide-right");
+                    active_btn.removeClass("btn-primary");
+                    if(active_btn.hasClass("motion-preset-slide-right")){
+                        active_btn.removeClass("motion-preset-slide-right");
+                    }
+                    if(active_btn.hasClass("motion-preset-slide-left")){
+                        active_btn.removeClass("motion-preset-slide-left");
+                    }
+                }else if(index<active_index){
+                    btn.addClass("btn-primary motion-preset-slide-left");
+                    active_btn.removeClass("btn-primary");
+                    if(active_btn.hasClass("motion-preset-slide-left")){
+                        active_btn.removeClass("motion-preset-slide-left")
+                    }
+                    if(active_btn.hasClass("motion-preset-slide-right")){
+                        active_btn.removeClass("motion-preset-slide-right");
+                    }
+                }
+                active_btn=btn;
+                active_index=index;
+
+            });
+        }
+    });
+    popover.on('click', 'a', function (e) {
+        e.preventDefault(); // IMPORTANT if it's a link
+        popover[0].hidePopover();
+        form_dialog[0].showModal();
+    });
+
+    $.each(popover_details,function(_,elem){
+        const _elem=$(elem);
+        _elem.on("click",function(){
+            if(!_elem.prop("open")){
+                _elem.prop("close",false);
+                active_details.prop("open",false);
+                active_details=_elem;
+            }
+        })
+    })
+    
+})();
+</script>
